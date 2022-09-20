@@ -631,17 +631,18 @@ int main(int argc, char** argv)
     // Apply METFilters
     bool bMETFilters = *nat.Flag_goodVertices && *nat.Flag_globalSuperTightHalo2016Filter && *nat.Flag_HBHENoiseFilter && *nat.Flag_HBHENoiseIsoFilter && *nat.Flag_EcalDeadCellTriggerPrimitiveFilter && *nat.Flag_BadPFMuonFilter && *nat.Flag_eeBadScFilter && (*nat.Flag_ecalBadCalibFilter || (year=="2016"));
     if (!bMETFilters) continue;
+    cutflow.add("MET filters", nwt);
     loop_timer.click("MET Filters");
     
     // signal-specific gen info
     if (is_signal)
-    {
-      skf->select_gen_particles(nat, ei);        // find gen level X, Y, H, b
-      skf->match_genbs_to_genjets(nat, ei);      // match the b quarks found above to the genjets
-      skf->match_genbs_genjets_to_reco(nat, ei); // match the genjets found above to the reco jets
-      loop_timer.click("Signal gen level");
-    }
-
+      {
+	skf->select_gen_particles(nat, ei);        // find gen level X, Y, H, b
+	skf->match_genbs_to_genjets(nat, ei);      // match the b quarks found above to the genjets
+	skf->match_genbs_genjets_to_reco(nat, ei); // match the genjets found above to the reco jets
+	loop_timer.click("Signal gen level");
+      }
+    
     // jet selections
     std::vector<Jet> all_jets = skf->get_all_jets(nat); // dump all nanoAOD jets into a vector<Jet>
     ei.nfound_all = skf->n_gjmatched_in_jetcoll(nat, ei, all_jets);
