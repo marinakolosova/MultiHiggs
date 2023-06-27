@@ -350,6 +350,7 @@ int main(int argc, char** argv)
   bool b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ;
   bool b_HLT_QuadPFJet70_50_40_30;
   bool b_HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65;
+  bool b_HLT_PFHT1050;
   bool b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30;
   bool b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30_PFBTagParticleNet_2BTagSum0p65;
   bool b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_PFDiJet30_PFBTagParticleNet_2BTagSum0p65;
@@ -442,6 +443,7 @@ int main(int argc, char** argv)
   tOut->Branch("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ", &b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ);
   tOut->Branch("HLT_QuadPFJet70_50_40_30", &b_HLT_QuadPFJet70_50_40_30);
   tOut->Branch("HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65", &b_HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65);
+  tOut->Branch("HLT_PFHT1050", &b_HLT_PFHT1050);
   tOut->Branch("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30", &b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30);
   tOut->Branch("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30_PFBTagParticleNet_2BTagSum0p65", &b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30_PFBTagParticleNet_2BTagSum0p65);
   tOut->Branch("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_PFDiJet30_PFBTagParticleNet_2BTagSum0p65", &b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_PFDiJet30_PFBTagParticleNet_2BTagSum0p65);
@@ -608,6 +610,7 @@ int main(int argc, char** argv)
 	  b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ = nat.getTrgResult("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ");
 	  b_HLT_QuadPFJet70_50_40_30 = nat.getTrgResult("HLT_QuadPFJet70_50_40_30");
 	  b_HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65 = nat.getTrgResult("HLT_QuadPFJet70_50_40_35_PFBTagParticleNet_2BTagSum0p65");
+	  b_HLT_PFHT1050 = nat.getTrgResult("HLT_PFHT1050");
 	  b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30 = nat.getTrgResult("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30");
 	  b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30_PFBTagParticleNet_2BTagSum0p65 = nat.getTrgResult("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_QuadPFJet70_50_40_30_PFBTagParticleNet_2BTagSum0p65");
 	  b_HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_PFDiJet30_PFBTagParticleNet_2BTagSum0p65 = nat.getTrgResult("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_PFDiJet30_PFBTagParticleNet_2BTagSum0p65");
