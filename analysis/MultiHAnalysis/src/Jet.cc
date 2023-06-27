@@ -41,9 +41,11 @@ void Jet::buildP4Regressed() {
   if (p4_.Pt() == 0.)
     this->buildP4();
 
+  // Not valid for Run-3
+  p4Regressed_ = p4_;
   //Apply regression
-  float corr = getBregCorr();
-  p4Regressed_ = corr * p4_;
+  //float corr = getBregCorr();
+  //p4Regressed_ = corr * p4_;
 }
 
 void JetListCollection::Register(TString tag, std::unique_ptr<TTree>& tree_, std::map<std::string, bool>& branch_switches_) {
