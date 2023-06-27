@@ -75,6 +75,7 @@ public:
   double n_true_int;
   double rhofastjet_all;
   double PFHT;
+  int is_bkg;
   
   // Trigger scale factor branches
   float triggerScaleFactor;

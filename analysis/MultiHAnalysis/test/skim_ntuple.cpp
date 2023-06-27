@@ -836,6 +836,15 @@ int main(int argc, char** argv) {
       cutflow_Unweighted.add("met filters");
     }
 
+    if (is_data || is_signal)
+      {
+	ei.is_bkg = 0;
+      }
+    else
+      {
+	ei.is_bkg = 1;
+      }
+    
     //==================================
     // Apply muon selection or veto
     //==================================
@@ -1037,8 +1046,32 @@ int main(int argc, char** argv) {
       skf->compute_event_shapes(nat, ei, selected_jets);
       loop_timer.click("Event shapes calculation");
     } else if (skim_type == kfourb) {
-      // Marina
-      std::cout << "" << std::endl;
+      
+      const DirectionalCut<int> cfg_nJets(config, "presel::njetsCut");
+      if (!cfg_nJets.passedCut(presel_jets.size())) continue;
+      cutflow.add("preselected jets >= 4", nwt);
+      cutflow_Unweighted.add("preselected jets >= 4");
+      loop_timer.click("At least 4 jets pre-selected");
+      
+      std::vector<Jet> selected_jets = skf->select_jets(nat, ei, presel_jets);
+      if (selected_jets.size() < 4) continue;
+      cutflow.add("selected jets >= 4", nwt);
+      cutflow_Unweighted.add("selected jets >= 4");
+      loop_timer.click("At least 4 jets selected");
+      
+      if (0) {
+        std::cout << "\n SELECTED JETS:" << std::endl;
+        for (unsigned int ij = 0; ij < selected_jets.size(); ij++) {
+          std::cout << "jet = " << ij << "   pT=" << selected_jets.at(ij).get_pt()
+                    << "    b-tag=" << selected_jets.at(ij).get_btag() << std::endl;
+        }
+      }
+      
+      ei.PFHT = skf->getPFHT(nat, ei);
+      if (ei.PFHT < 330.0) continue;
+      cutflow.add("PFHT >= 330 GeV", nwt);
+      cutflow_Unweighted.add("PFHT >= 330 GeV");
+      
     } else if (skim_type == ksixb) {
       // Preselected jets are all jets in the event sorted in pT
       const DirectionalCut<int> cfg_nJets(config, "presel::njetsCut");

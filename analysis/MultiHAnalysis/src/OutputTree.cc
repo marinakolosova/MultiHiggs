@@ -29,6 +29,7 @@ void OutputTree::init_branches(std::map<std::string, bool> branch_switches)
   tree_->Branch("n_other_pv",     &n_other_pv);
   tree_->Branch("rhofastjet_all", &rhofastjet_all);
   tree_->Branch("PFHT", &PFHT);
+  tree_->Branch("is_bkg", &is_bkg);
   
   if (is_enabled("saveTrgSF"))
     {

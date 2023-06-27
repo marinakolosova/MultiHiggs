@@ -426,6 +426,33 @@ std::vector<Jet> FourB_functions::select_jets(NanoAODTree& nat, EventInfo& ei, c
 	    }
 	}
       
+      // Sort jets by DeepJet score
+      std::vector<Jet> jets_sortedInBTag;
+      for (unsigned int ij=0; ij<jets_sortedInPt.size(); ++ij)
+	{
+	  const Jet &jet = jets_sortedInPt.at(ij);
+	  jets_sortedInBTag.push_back(jet);
+	}
+      stable_sort(jets_sortedInBTag.begin(), jets_sortedInBTag.end(), [](const Jet & a, const Jet & b) -> bool{return(a.get_btag()> b.get_btag()); });
+      
+      int nMediumBJets = 0;
+      for (unsigned int ij=0; ij<jets_sortedInBTag.size(); ++ij)
+	{
+	  const Jet &jet = jets_sortedInBTag.at(ij);
+	  float bDisc = jet.get_btag();
+	  if (bDisc >= 0.2783) // Medium WP
+	    {
+	      nMediumBJets++;
+	    }
+	  if (0) std::cout <<"jet ="<<ij<<"  DeepJet ="<<jet.get_btag()<<std::endl;
+	}
+      
+      if (nMediumBJets < 3)
+	{
+	  pass_cuts = false;
+	}
+      
+      /*
       // Sort jets by ParticleNet b-tagging
       std::vector<Jet> jets_sortedInBTag;
       for (unsigned int ij=0; ij<jets_sortedInPt.size(); ++ij)
@@ -439,6 +466,8 @@ std::vector<Jet> FourB_functions::select_jets(NanoAODTree& nat, EventInfo& ei, c
 	  const Jet &jet = jets_sortedInBTag.at(ij);
 	  //if (0) std::cout << " jet ="<<ij<<"   PNet BvsAll = "<<get_property(jet, Jet_btagPNetBvsAll)<<std::endl;
 	}
+      */
+      
       
       // If cuts are not satisfied, resize jet selection to zero
       if (!pass_cuts)

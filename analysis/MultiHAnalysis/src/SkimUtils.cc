@@ -46,6 +46,7 @@ void SkimUtils::fill_output_tree(OutputTree& ot, NanoAODTree& nat, EventInfo& ei
   if(ei.n_true_int)     ot.n_true_int      = *ei.n_true_int;
   if(ei.rhofastjet_all) ot.rhofastjet_all  = *ei.rhofastjet_all;
   if(ei.PFHT)           ot.PFHT            = *ei.PFHT;
+  if(ei.is_bkg)         ot.is_bkg          = *ei.is_bkg;
   if(ei.lhe_ht)         ot.lhe_ht          = *ei.lhe_ht;
   if(ei.n_jet)          ot.n_jet           = *ei.n_jet;
   if(ei.n_total_jet)    ot.n_total_jet     = *ei.n_total_jet;
