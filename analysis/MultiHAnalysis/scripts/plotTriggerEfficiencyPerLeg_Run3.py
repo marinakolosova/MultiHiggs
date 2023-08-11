@@ -498,7 +498,7 @@ def AddPrivateWorkText(setx=0.21, sety=0.91):
 
 def CreateLegend(opts):
     # Default position on canvas
-    x1 = 0.50
+    x1 = 0.27
     x2 = 0.85
     
     y1 = 0.20
@@ -569,6 +569,100 @@ def getCanvas():
     return d
 
 
+def doFit(tGraph, fit_function, initialParameters, **kwargs):
+    '''
+    Perform the fit
+    '''
+    print("\n======= Perform the fit")
+    
+    aliasDict = {}
+    aliasDict["error"] = "0.5*(1 + TMath::Erf( (x[0]-[0])/[1]) ) * ([3]-[2]) + [2]"
+    aliasDict["crystalball_cdf"] = "ROOT::Math::crystalball_cdf(x, [5], [4], [1], [0])*([3]-[2]) + [2]"
+    aliasDict["crystalball_error"] = "ROOT::Math::crystalball_cdf(x, [5], [4], [1], [0]) * (0.5*(1 + TMath::Erf( (x-[0])/[6]) ) ) *([3]-[2]) + [2]"
+    
+    if fit_function == "crystalball_error":
+        # First - define the error function
+        errorFunction = ROOT.TF1("erf", aliasDict["error"], kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        errorFunction.SetParameter(0, initialParameters["p0"])
+        errorFunction.SetParameter(1, initialParameters["p1"])
+        errorFunction.SetParameter(2, initialParameters["p2"])
+        errorFunction.SetParameter(3, initialParameters["p3"])
+        errorFunction.SetParLimits(2, 0, 1)
+        errorFunction.SetParLimits(3, 0, 1)
+        tGraph.Fit(errorFunction, "Q0RE")
+        
+        Function = ROOT.TF1("crystal_ball", aliasDict["crystalball_error"], kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        Function.SetParameter(0, errorFunction.GetParameter(0))
+        Function.SetParameter(1, errorFunction.GetParameter(1))
+        Function.SetParameter(2, errorFunction.GetParameter(2))
+        Function.SetParameter(3, errorFunction.GetParameter(3))
+        Function.SetParameter(4, 3.)
+        Function.SetParameter(5, 3.)
+        Function.SetParLimits(2, 0, 1)
+        Function.SetParLimits(3, 0, 1)
+        Function.SetParLimits(4, 1.001, 10)
+        Function.SetParLimits(5, 0.001, 10)
+        tGraph.Fit(Function, "Q0RE")
+    elif fit_function == "crystalball_cdf":
+        Function = ROOT.TF1("crystal_ball", aliasDict["crystalball_cdf"], kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        Function.SetParameter(0, initialParameters["p0"])
+        Function.SetParameter(1, initialParameters["p1"])
+        Function.SetParameter(2, initialParameters["p2"])
+        Function.SetParameter(3, initialParameters["p3"])
+        Function.SetParameter(4, initialParameters["p4"])
+        Function.SetParameter(5, initialParameters["p5"])
+        tGraph.Fit(Function, "Q0RE")
+    elif fit_function == "pol5":
+        Function = ROOT.TF1("pol5", "pol5", kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        tGraph.Fit(Function, "0ERQW")
+    else:
+        Function = None
+        fitResult = None
+
+    
+    Function.SetLineColor(ROOT.kBlue)
+    Function.SetLineWidth(1)
+    fitResult = tGraph.Fit(Function, "S0ER")
+
+    # Get confidence intervals on the fit
+    # https://root.cern/doc/v610/ConfidenceIntervals_8C.html
+    
+    # Create a TGraphErrors to hold the confidence intervals
+    values = fitResult.GetConfidenceIntervals(0.68, True)
+    interval = ROOT.TGraphErrors(tGraph.GetN())
+    
+    #xMin = tGraph.GetX()[0]-tGraph.GetErrorXlow(0)
+    #xMax = tGraph.GetX()[tGraph.GetN()-1] + tGraph.GetErrorXlow(tGraph.GetN()-1)
+        
+    for i in range(tGraph.GetN()):
+        interval.SetPoint(i, tGraph.GetX()[i], Function.Eval(tGraph.GetX()[i]))
+        interval.SetPointError(i, tGraph.GetX()[i], values[i])
+        print("bin ", i, "  x=", tGraph.GetX()[i], "   fit value=", Function.Eval(tGraph.GetX()[i]), "   Confidence interval=", values[i])
+
+    interval.SetFillColor(ROOT.kRed)
+    interval.SetFillStyle(3001)
+    return Function, interval
+
+def GetFitFunctionFromAlias(fitFormula):
+    aliasDict = {}
+    aliasDict["pol1"]         = "[0] + [1]*x"
+    aliasDict["pol2"]         = "[0] + [1]*x + [2]*x*x"
+    aliasDict["pol3"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x"
+    aliasDict["pol4"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x"
+    aliasDict["pol5"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x"
+    aliasDict["pol6"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x + [6]*x*x*x*x*x*x"
+    aliasDict["sigmoid"]      = "[0]/( 1+exp(-[1]*(x-[2]) ))"
+    aliasDict["error"]        = "0.5*[0]*(1+TMath::Erf( (sqrt(x)-sqrt([1]))/([2]) ))"
+    aliasDict["gomprentz"]    = "[2]*(0.5)**(exp(-[0]*(x-[1])))"
+    aliasDict["richards"]     = "[2]/( (1 + (2**[3] - 1)*exp(-[0]*(x-[1])))**(1/[3])  )"
+    aliasDict["crystalball"]  = "ROOT::Math::crystalball_cdf(x, [0], [1], [2], [3])"
+    
+    if fitFormula not in aliasDict.keys():
+        print("Requested fit formula (%s) not present. Please add it." % (fitFormula))
+        return fitFormula
+    else:
+        return aliasDict[fitFormula]
+
 def SetEfficiencyStyle(h, isData):
     
     if isData:
@@ -588,90 +682,326 @@ def main(args):
     # Use Clopper-Pearson statistical option
     statOption = ROOT.TEfficiency.kFCP
     
+    lumi = "26.3" # post-EE (EFG eras)
+    
     #=======================================================================================================================
-    # Efficiency of L1 Seeds:
+    # Efficiency of HLT Filters:
     #=======================================================================================================================
-    hName = "L1_Efficiency_vs_PFHT_baseline"
-    d = getCanvas()
     
-    opts = GetOpts(hName)
-    opts["legend"]["header"] = hName.split("_")[-1]
-    legend = CreateLegend(opts)
-    legend.SetHeader("")
-    
-    hNum  = f.Get("h_PFHT_Passed_L1_MuonEG")
-    hDen  = f.Get("h_PFHT_MuonEG")
-    hNum.GetYaxis().SetTitle("#varepsilon_{L1}")
-    hDen.GetYaxis().SetTitle("#varepsilon_{L1}")
-    
-    hEff  = ROOT.TEfficiency(hNum, hDen)
-    hEff.SetStatisticOption(statOption)
-    hEff.Draw()
+    # L1 seeds efficiency
+    hNames = ["L1_Efficiency_vs_PFHT_baseline",
+              "PerFilterEfficiency_FourPixelOnlyPFCentralJetTightIDPt20_ForthJetPt_baseline",
+              "PerFilterEfficiency_ThreePixelOnlyPFCentralJetTightIDPt30_ThirdJetPt_baseline",
+              "PerFilterEfficiency_TwoPixelOnlyPFCentralJetTightIDPt40_SecondJetPt_baseline",
+              "PerFilterEfficiency_OnePixelOnlyPFCentralJetTightIDPt60_FirstJetPt_baseline",
+              #
+              "PerFilterEfficiency_FourPFCentralJetTightIDPt35_ForthJetPt_baseline",
+              "PerFilterEfficiency_ThreePFCentralJetTightIDPt40_ThirdJetPt_baseline",
+              "PerFilterEfficiency_TwoPFCentralJetTightIDPt50_SecondJetPt_baseline",
+              "PerFilterEfficiency_OnePFCentralJetTightIDPt70_FirstJetPt_baseline",
+              #
+              "PerFilterEfficiency_BTagCentralJetPt35PFParticleNet2BTagSum0p65_MeanBTag_baseline",
+          ]
 
-    # MC distributions -> Need to normalize them to reflect the integrated luminosity
-    hNumMC = f.Get("h_PFHT_Passed_L1_TT")
-    hDenMC = f.Get("h_PFHT_TT")
-    hNumMC.GetYaxis().SetTitle("#varepsilon_{L1}")
-    hDenMC.GetYaxis().SetTitle("#varepsilon_{L1}")
-    
-    #hNumMC = _normalizeHistogram(hNumMC, False)
-    #hDenMC = _normalizeHistogram(hDenMC, False)
-    #==========================================
+    Nums = ["h_PFHT_Passed_L1", 
+            "h_ForthJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20",
+            "h_ThirdJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30",
+            "h_SecondJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40",
+            "h_FirstJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60",
+            #
+            "h_ForthJetPt_Passed_FourPFCentralJetTightIDPt35",
+            "h_ThirdJetPt_Passed_ThreePFCentralJetTightIDPt40",
+            "h_SecondJetPt_Passed_TwoPFCentralJetTightIDPt50",
+            "h_FirstJetPt_Passed_OnePFCentralJetTightIDPt70",
+            #
+            "h_MeanBTagSum_Passed_BTagCentralJetPt35PFParticleNet2BTagSum0p65",
+        ]
+
+    Dens = ["h_PFHT",
+            "h_ForthJetPt_Passed_L1",
+            "h_ThirdJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20",
+            "h_SecondJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30",
+            "h_FirstJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40",
+            #
+            "h_ForthJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60",
+            "h_ThirdJetPt_Passed_FourPFCentralJetTightIDPt35",
+            "h_SecondJetPt_Passed_ThreePFCentralJetTightIDPt40",
+            "h_FirstJetPt_Passed_TwoPFCentralJetTightIDPt50",
+            #
+            "h_MeanBTagSum_Passed_OnePFCentralJetTightIDPt70",
+        ]
+
+    ROOT.gStyle.SetOptFit(1011)
+    # Create comparison plots (Data/MC) for each filter
+    for (hName, num, den) in zip(hNames, Nums, Dens):
+        hNum = f.Get("%s_MuonEG" % (num))
+        hDen = f.Get("%s_MuonEG" % (den))
+
+        hEff  = ROOT.TEfficiency(hNum, hDen)
+        hEff.SetStatisticOption(statOption)
+                
+        # MC distributions -> Need to normalize them to reflect the integrated luminosity
+        hNumMC = f.Get("%s_TT" % (num))
+        hDenMC = f.Get("%s_TT" % (den))
         
-    hEffMC = ROOT.TEfficiency(hNumMC, hDenMC)
-    hEffMC.SetStatisticOption(statOption)
-    hEffMC.Draw("same")
-    
-    d.Modified()
-    d.Update()
-    
-    hEff.GetPaintedGraph().GetXaxis().SetRangeUser(300, 1600)
-    hEff.GetPaintedGraph().GetYaxis().SetRangeUser(0.0, 1.1)
-    legend.AddEntry(hEff, "Data")
-    legend.AddEntry(hEffMC, "t#bar{t}")
-    
+        hEffMC = ROOT.TEfficiency(hNumMC, hDenMC)
+        hEffMC.SetStatisticOption(statOption)
+        
+        tGraph_Eff_Data = convert2TGraph(hEff)
+        tGraph_Eff_MC   = convert2TGraph(hEffMC)
+        
+        kwargs = {}
+        if "MeanBTag" in hName:
+            kwargs["opts"]={"xmin": 0.60, "xmax": 1.02, "xlabel": "Mean b-tag score", "ylabel": "#varepsilon_{filter}", "ymin":0.2, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": True, "dx": -0.35, "dy": +0.3, "size":0.03, "header": None} }
+        else:
+            kwargs["opts"]={"xmin": 30, "xmax": 200, "xlabel": "Offline jet p_{T} [GeV]", "ylabel": "#varepsilon_{filter}", "ymin":0.5, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": True, "dx": -0.25, "dy": +0.3, "size":0.03, "header": None} }
+        kwargs["opts2"]={"ylabel": "Data / MC", "ymin": 0.7, "ymax": 1.3}
+        p = ComparisonPlot_DataMC(tGraph_Eff_Data, tGraph_Eff_MC, **kwargs)
+        frame = p._createFrame("frame_"+hName, createRatio=True)
+        frame.canvas.SaveAs(hName+".pdf")
+        
+        # Fit each curve separately, Data and MC
+        canvas_data = getCanvas()
+        opts = GetOpts(hName)
+        opts["legend"]["header"] = hName.split("_")[-1]
+        legend = CreateLegend(opts)
+        legend.SetHeader("")
 
-    tGraph_Eff_Data = convert2TGraph(hEff)
-    tGraph_Eff_MC   = convert2TGraph(hEffMC)
-    
+        hEff.SetMarkerStyle(21)
+        hEff.SetMarkerColor(ROOT.kBlack)
+        hEff.SetLineColor(ROOT.kBlack)
+        hEff.Draw()
+        
+        canvas_data.Modified()
+        canvas_data.Update()
+        
+        # Skip first plot until I fix the issue
+        if "L1" in hName:
+            continue
+        
+        hlt_filter = hName.split("_")[1]
+        legend.SetHeader(hlt_filter)
 
-    d.Modified()
-    d.Update()
-    tex_cms = AddCMSText()
-    tex_cms.Draw("same")
-    tex_prelim = AddPrivateWorkText()
-    tex_prelim.Draw("same")
-    
-    header = ROOT.TLatex()
-    header.SetTextSize(0.04)
-    header.DrawLatexNDC(0.47, 0.91, "29.26 fb^{-1} (2022, 13.6 TeV)")
+        hEff.GetPaintedGraph().GetYaxis().SetTitle("#varepsilon_{filter}")
+        hEff.GetPaintedGraph().GetXaxis().SetRangeUser(kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        hEff.GetPaintedGraph().GetYaxis().SetRangeUser(0.0, 1.1)
 
-    line = ROOT.TLine(400,0.0,400,1.1)
-    line.SetLineStyle(6)
-    line.SetLineColor(ROOT.kBlue)
-    line.Draw("same")
-    
-    hEff.GetPaintedGraph().GetYaxis().SetTitle("#varepsilon_{L1}")
-    legend.Draw("same")
-    
-    # Update canvas
-    d.Modified()
-    d.Update()
-    d.SaveAs("%s.pdf" % (hName))
+        initialParameters = {"p0" : -109, "p1": 75, "p2":0.02, "p3": 1.0}
+        
+        if "FourPixelOnlyPFCentralJetTightIDPt20" in hName:
+            online_cut = 20
+        elif "ThreePixelOnlyPFCentralJetTightIDPt30" in hName:
+            online_cut = 30
+        elif "TwoPixelOnlyPFCentralJetTightIDPt40" in hName:
+            online_cut = 40
+        elif "OnePixelOnlyPFCentralJetTightIDPt60" in hName:
+            online_cut = 60
+        elif "FourPFCentralJetTightIDPt35" in hName:
+            online_cut = 35
+        elif "ThreePFCentralJetTightIDPt40" in hName:
+            online_cut = 40
+        elif "TwoPFCentralJetTightIDPt50" in hName:
+            online_cut = 50
+        elif "OnePFCentralJetTightIDPt70" in hName:
+            online_cut = 70
+        elif "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+            online_cut = 0.65
+            initialParameters = {"p0" : 1.375, "p1": 0.342, "p2": 0.372, "p3": 4.51, "p4": 1.01, "p5": 3.02}
+        else:
+            online_cut = 0
+
+        line = ROOT.TLine(online_cut, 0, online_cut, 1.1)
+        line.SetLineColor(ROOT.kGray)
+        line.SetLineWidth(2)
+        if (online_cut < kwargs["opts"]["xmin"]):
+            pass
+        else:
+            line.Draw("same")
+        
+        print("\n======== Will fit filter %s" % (hName))
+        print("Initial parameters:")
+        print("p0=", initialParameters["p0"])
+        print("p1=", initialParameters["p1"])
+        print("p2=", initialParameters["p2"])
+        print("p3=", initialParameters["p3"])
+        
+        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+            print("p4=", initialParameters["p4"])
+            print("p4=", initialParameters["p5"])
+            fit, interval = doFit(tGraph_Eff_Data, "crystalball_cdf", initialParameters, **kwargs)
+            fit, interval = doFit(tGraph_Eff_Data, "pol5", initialParameters, **kwargs)
+        else:
+            fit, interval = doFit(tGraph_Eff_Data, "crystalball_error", initialParameters, **kwargs)
+        fit.Draw("same")
+        interval.Draw("E3 same")
+        
+        chi2 = fit.GetChisquare()
+        p0 = fit.GetParameter(0)
+        p1 = fit.GetParameter(1)
+        p2 = fit.GetParameter(2)
+        p3 = fit.GetParameter(3)
+        
+        print("\n---------> After fitting")
+        print("chi2 = ", chi2)
+        print("p0   = ", p0)
+        print("p1   = ", p1)
+        print("p2   = ", p2)
+        print("p3   = ", p3)
+        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+            p4 = fit.GetParameter(4)
+            p5 = fit.GetParameter(5)
+            print("p4   = ", p4)
+            print("p5   = ", p5)
+        legend.AddEntry(hEff, "Data")
+        legend.AddEntry(fit, "Fit function", "l")
+        legend.AddEntry(interval, "68% CL band", "f")
+        legend.Draw("same")
+
+        tex_cms = AddCMSText()
+        tex_cms.Draw("same")
+        tex_prelim = AddPrivateWorkText()
+        tex_prelim.Draw("same")
+        header = ROOT.TLatex()
+        header.SetTextSize(0.04)
+        header.DrawLatexNDC(0.47, 0.91, "%s fb^{-1} (2022, 13.6 TeV)" % (lumi))
+        
+        canvas_data.Modified()
+        canvas_data.Update()
+        canvas_data.SaveAs("Fit_Data_%s.pdf" % (hName))
+
+        print("\n================================= Now do MC fit")
+        # MC
+        canvas_mc = getCanvas()
+        legend = CreateLegend(opts)
+        legend.SetHeader("")
+        
+        hEffMC.SetMarkerStyle(21)
+        hEffMC.SetMarkerColor(ROOT.kBlack)
+        hEffMC.SetLineColor(ROOT.kBlack)
+        hEffMC.Draw()
+        
+        canvas_mc.Modified()
+        canvas_mc.Update()
+        
+        hEffMC.GetPaintedGraph().GetYaxis().SetTitle("#varepsilon_{filter}")
+        hEffMC.GetPaintedGraph().GetXaxis().SetRangeUser(kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        hEffMC.GetPaintedGraph().GetYaxis().SetRangeUser(0.0, 1.1)
+        
+
+        
+        # Skip first plot until I fix the issue
+        if "L1" in hName:
+            continue
+        
+        hlt_filter = hName.split("_")[1]
+        legend.SetHeader(hlt_filter)
+
+        hEffMC.GetPaintedGraph().GetXaxis().SetRangeUser(kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        hEffMC.GetPaintedGraph().GetYaxis().SetRangeUser(0.0, 1.1)
+        initialParameters = {"p0" : -109, "p1": 75, "p2":0.02, "p3": 1.0}
+        
+        if "FourPixelOnlyPFCentralJetTightIDPt20" in hName:
+            online_cut = 20
+        elif "ThreePixelOnlyPFCentralJetTightIDPt30" in hName:
+            online_cut = 30
+        elif "TwoPixelOnlyPFCentralJetTightIDPt40" in hName:
+            online_cut = 40
+        elif "OnePixelOnlyPFCentralJetTightIDPt60" in hName:
+            online_cut = 60
+        elif "FourPFCentralJetTightIDPt35" in hName:
+            online_cut = 35
+        elif "ThreePFCentralJetTightIDPt40" in hName:
+            online_cut = 40
+        elif "TwoPFCentralJetTightIDPt50" in hName:
+            online_cut = 50
+        elif "OnePFCentralJetTightIDPt70" in hName:
+            online_cut = 70
+        elif "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+            online_cut = 0.65
+            initialParameters = {"p0" : 1.375, "p1": 0.342, "p2": 0.372, "p3": 4.51, "p4": 1.01, "p5": 3.02}
+        else:
+            online_cut = 0
+
+        line = ROOT.TLine(online_cut, 0, online_cut, 1.1)
+        line.SetLineColor(ROOT.kGray)
+        line.SetLineWidth(2)
+        if (online_cut < kwargs["opts"]["xmin"]):
+            pass
+        else:
+            line.Draw("same")
+
+        print("\n======== Will fit filter %s" % (hName))
+        print("Initial parameters:")
+        print("p0=", initialParameters["p0"])
+        print("p1=", initialParameters["p1"])
+        print("p2=", initialParameters["p2"])
+        print("p3=", initialParameters["p3"])
+        
+        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+            print("p4=", initialParameters["p4"])
+            print("p4=", initialParameters["p5"])
+            fit, interval = doFit(tGraph_Eff_MC, "pol5", initialParameters, **kwargs)
+        else:
+            fit, interval = doFit(tGraph_Eff_MC, "crystalball_error", initialParameters, **kwargs)
+        fit.Draw("same")
+        interval.Draw("E3 same")
+        
+        chi2 = fit.GetChisquare()
+        p0 = fit.GetParameter(0)
+        p1 = fit.GetParameter(1)
+        p2 = fit.GetParameter(2)
+        p3 = fit.GetParameter(3)
+        
+        print("\n---------> After fitting")
+        print("chi2 = ", chi2)
+        print("p0   = ", p0)
+        print("p1   = ", p1)
+        print("p2   = ", p2)
+        print("p3   = ", p3)
+        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+            p4 = fit.GetParameter(4)
+            p5 = fit.GetParameter(5)
+            print("p4   = ", p4)
+            print("p5   = ", p5)
+        legend.AddEntry(hEffMC, "Simulation (postEE)")
+        legend.AddEntry(fit, "Fit function", "l")
+        legend.AddEntry(interval, "68% CL band", "f")
+        legend.Draw("same")
+
+        tex_cms = AddCMSText()
+        tex_cms.Draw("same")
+        tex_prelim = AddPrivateWorkText()
+        tex_prelim.Draw("same")
+        header = ROOT.TLatex()
+        header.SetTextSize(0.04)
+        header.DrawLatexNDC(0.47, 0.91, "%s fb^{-1} (2022, 13.6 TeV)" % (lumi))
+        
+        canvas_mc.Modified()
+        canvas_mc.Update()
+        canvas_mc.SaveAs("Fit_MC_%s.pdf" % (hName))
+
+
+
+
+
+
+
+
+
+
+
+
+        
     #============================================================================================================================================
-    
-    kwargs = {}
-    kwargs["opts"]={"xmin": 200, "xmax":1600, "xlabel": "Offline PF H_{T} [GeV]", "ylabel": "#varepsilon_{L1}", "ymin":0.5, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": False, "dx": -0.15, "dy": +0.3, "size":0.03, "header": None} }
-    kwargs["opts2"]={"ylabel": "Data / MC", "ymin": 0.7, "ymax": 1.3}
-    p = ComparisonPlot_DataMC(tGraph_Eff_Data, tGraph_Eff_MC, **kwargs)
-    frame = p._createFrame("frame_L1EffvsPFHT_baseline", createRatio=True)
-    frame.canvas.SaveAs("L1Efficiency_vs_HT_DataVsMC.pdf")
-    
+
     ROOT.gStyle.SetPaintTextFormat("4.2f");
-    
+
     # ===== DATA
     # Efficiency = Offline Selection && Reference Trigger && Signal Trigger / Offline Selection && Reference Trigger
     selections = ["baseline", "2BTagM", "2BTagM_PFHT400", "3BTagM", "3BTagM_PFHT400"]
+
+    # marina
+    selections = []
     for sel in selections:
         
         hName = "L1_HLT_Efficiency_2D_PFHT_vs_MeanBTagPNet_%s_MuonEG_Data" % (sel)
@@ -746,6 +1076,8 @@ def main(args):
     #==============================
     # Efficiency = Offline Selection && Reference Trigger && Signal Trigger / Offline Selection && Reference Trigger
     selections = ["baseline", "2BTagM", "2BTagM_PFHT400", "3BTagM", "3BTagM_PFHT400"]
+    # marina
+    selections = []
     for sel in selections:
         
         hName = "L1_HLT_Efficiency_2D_PFHT_vs_MeanBTagPNet_%s_TT" % (sel)
@@ -955,7 +1287,7 @@ def main(args):
 
 
 
-    d.Close()
+    #d.Close()
 
     return
     

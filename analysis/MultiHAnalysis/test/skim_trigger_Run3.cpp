@@ -900,17 +900,17 @@ int main(int argc, char** argv)
       if (selected_jets.size()  < 4) continue;
       
       // Apply the trigger cuts
-      if (selected_jets.at(0).P4().Pt() < 70.0) continue;
-      if (selected_jets.at(1).P4().Pt() < 50.0) continue;
-      if (selected_jets.at(2).P4().Pt() < 40.0) continue;
-      if (selected_jets.at(3).P4().Pt() < 35.0) continue;
+      //if (selected_jets.at(0).P4().Pt() < 70.0) continue;
+      //if (selected_jets.at(1).P4().Pt() < 50.0) continue;
+      //if (selected_jets.at(2).P4().Pt() < 40.0) continue;
+      //if (selected_jets.at(3).P4().Pt() < 35.0) continue;
       
       std::vector<Jet> selected_bjets;
       std::vector<Jet> LeadingFour_selected_bjets;
       
       if (0) std::cout << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"<<std::endl;
       if (0) std::cout << " Event number ="<<iEv<<std::endl;
-      float MediumPNetWP  = 0.387;
+      float MediumPNetWP  = 0.2605; // PostEE era WP, taken from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
       
       NMediumPNetJets = 0;
       for (unsigned int j=0; j<selected_jets.size(); j++)
