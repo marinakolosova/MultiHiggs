@@ -4,7 +4,7 @@
 ./getTriggerEfficiencyPerLeg_Run3.py --year <year> -d <NTuple Directory>
 
 LAST USED:
-./getTriggerEfficiencyPerLeg_Run3.py --year 2022 -d Run3_Prompt2022_MuonEG_PNetHLT
+./getTriggerEfficiencyPerLeg_Run3.py --year 2022
 '''
 #===================================
 # Import modules
@@ -237,7 +237,7 @@ def GetPNetEfficiencies22(f, sampleName):
     # Book the histograms
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    bins_pt   = [35, 40, 45, 50, 55, 60, 65, 70, 80, 100]
+    bins_pt   = [35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100, 125, 150, 175, 200]
     bins_HT   = [300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 850, 1000, 1200, 1600]
     bins_bDisc = [0.65, 0.67, 0.69, 0.71, 0.73, 0.75, 0.77, 0.79, 0.81, 0.83, 0.85, 0.87, 0.89, 0.91, 0.93, 0.95, 0.97, 0.99, 1.0]
     
@@ -254,14 +254,47 @@ def GetPNetEfficiencies22(f, sampleName):
     h_NBJets     = ROOT.TH1F("h_NBJets_%s" % (sampleName),     "; Medium b-jet multiplicity; #varepsilon_{L1+HLT}", 4, 1, 5)
 
     h_PFHT_Passed_L1 = ROOT.TH1F("h_PFHT_Passed_L1_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1}", len(bins_HT)-1, array.array("d", bins_HT))
-    h_ForthJetPt_Passed_L1 = ROOT.TH1F("h_ForthJetPt_Passed_L1_%s" % (sampleName), "; Offline p_{T}^{4th jet} [GeV]; #varepsilon_{L1}", len(bins_pt)-1, array.array("d", bins_pt))
     
+    h_PFHT_Passed_FourPixelOnlyPFCentralJetTightIDPt20 = ROOT.TH1F("h_PFHT_Passed_FourPixelOnlyPFCentralJetTightIDPt20_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    h_PFHT_Passed_ThreePixelOnlyPFCentralJetTightIDPt30 = ROOT.TH1F("h_PFHT_Passed_ThreePixelOnlyPFCentralJetTightIDPt30_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    h_PFHT_Passed_TwoPixelOnlyPFCentralJetTightIDPt40   = ROOT.TH1F("h_PFHT_Passed_TwoPixelOnlyPFCentralJetTightIDPt40_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    h_PFHT_Passed_OnePixelOnlyPFCentralJetTightIDPt60   = ROOT.TH1F("h_PFHT_Passed_OnePixelOnlyPFCentralJetTightIDPt60_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    
+    h_PFHT_Passed_FourPFCentralJetTightIDPt35 = ROOT.TH1F("h_PFHT_Passed_FourPFCentralJetTightIDPt35_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    h_PFHT_Passed_ThreePFCentralJetTightIDPt40 = ROOT.TH1F("h_PFHT_Passed_ThreePFCentralJetTightIDPt40_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    h_PFHT_Passed_TwoPFCentralJetTightIDPt50 = ROOT.TH1F("h_PFHT_Passed_TwoPFCentralJetTightIDPt50_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+    h_PFHT_Passed_OnePFCentralJetTightIDPt70 = ROOT.TH1F("h_PFHT_Passed_OnePFCentralJetTightIDPt70_%s" % (sampleName), "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
+
+    # 
+    h_ForthJetPt_Passed_L1 = ROOT.TH1F("h_ForthJetPt_Passed_L1_%s" % (sampleName), "; Offline p_{T}^{4th jet} [GeV]; #varepsilon_{L1}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ForthJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20 = ROOT.TH1F("h_ForthJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20_%s" % (sampleName), "; Offline p_{T}^{4th jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ThirdJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20 = ROOT.TH1F("h_ThirdJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20_%s" % (sampleName), "; Offline p_{T}^{3rd jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ThirdJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30 = ROOT.TH1F("h_ThirdJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30_%s" % (sampleName), "; Offline p_{T}^{3rd jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_SecondJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30 = ROOT.TH1F("h_SecondJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30_%s" % (sampleName), "; Offline p_{T}^{2nd jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_SecondJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40 = ROOT.TH1F("h_SecondJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40_%s" % (sampleName), "; Offline p_{T}^{2nd jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_FirstJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40 = ROOT.TH1F("h_FirstJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40_%s" % (sampleName), "; Offline p_{T}^{1st jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_FirstJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60 = ROOT.TH1F("h_FirstJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60_%s" % (sampleName), "; Offline p_{T}^{1st jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ForthJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60 = ROOT.TH1F("h_ForthJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60_%s" % (sampleName), "; Offline p_{T}^{1st jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ForthJetPt_Passed_FourPFCentralJetTightIDPt35  = ROOT.TH1F("h_ForthJetPt_Passed_FourPFCentralJetTightIDPt35_%s" % (sampleName), "; Offline p_{T}^{4th jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ThirdJetPt_Passed_FourPFCentralJetTightIDPt35  = ROOT.TH1F("h_ThirdJetPt_Passed_FourPFCentralJetTightIDPt35_%s" % (sampleName), "; Offline p_{T}^{4th jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_ThirdJetPt_Passed_ThreePFCentralJetTightIDPt40 = ROOT.TH1F("h_ThirdJetPt_Passed_ThreePFCentralJetTightIDPt40_%s" % (sampleName), "; Offline p_{T}^{3rd jet} [GeV]; #varepsilon_{filter}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_SecondJetPt_Passed_ThreePFCentralJetTightIDPt40 = ROOT.TH1F("h_SecondJetPt_Passed_ThreePFCentralJetTightIDPt40_%s" % (sampleName), "; Offline p_{T}^{2nd jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_SecondJetPt_Passed_TwoPFCentralJetTightIDPt50  = ROOT.TH1F("h_SecondJetPt_Passed_TwoPFCentralJetTightIDPt50_%s" % (sampleName), "; Offline p_{T}^{2nd jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    h_FirstJetPt_Passed_TwoPFCentralJetTightIDPt50 = ROOT.TH1F("h_FirstJetPt_Passed_TwoPFCentralJetTightIDPt50_%s"  % (sampleName), "; Offline p_{T}^{1st jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))  
+    h_FirstJetPt_Passed_OnePFCentralJetTightIDPt70 = ROOT.TH1F("h_FirstJetPt_Passed_OnePFCentralJetTightIDPt70_%s" % (sampleName), "; Offline p_{T}^{1st jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
+    
+    h_MeanBTagSum_Passed_OnePFCentralJetTightIDPt70 = ROOT.TH1F("h_MeanBTagSum_Passed_OnePFCentralJetTightIDPt70_%s" % (sampleName), "; Offline mean b-tag; #varepsilon_{filter}", len(bins_bDisc)-1, array.array("d", bins_bDisc))
+    h_MeanBTagSum_Passed_BTagCentralJetPt35PFParticleNet2BTagSum0p65 = ROOT.TH1F("h_MeanBTagSum_Passed_BTagCentralJetPt35PFParticleNet2BTagSum0p65_%s" % (sampleName), "; Offline mean b-tag; #varepsilon_{filter}", len(bins_bDisc)-1, array.array("d", bins_bDisc))
+    
+    
+    #---------------------------------------------------------
+    # Full path
+    #---------------------------------------------------------
     h_PFHT_Passed_FullPath       = ROOT.TH1F("h_PFHT_Passed_FullPath_%s" % (sampleName),       "; Offline PF H_{T} [GeV]; #varepsilon_{L1+HLT}", len(bins_HT)-1, array.array("d", bins_HT))
     h_ForthJetPt_Passed_FullPath = ROOT.TH1F("h_ForthJetPt_Passed_FullPath_%s" % (sampleName), "; Offline p_{T}^{4th jet} [GeV]; #varepsilon_{L1+HLT}", len(bins_pt)-1, array.array("d", bins_pt))
     h_NJets_Passed_FullPath      = ROOT.TH1F("h_NJets_Passed_FullPath_%s" % (sampleName),      "; Jet multiplicity; #varepsilon_{L1+HLT}", 8, 4, 12)
     h_MeanBTag_Passed_FullPath   = ROOT.TH1F("h_MeanBTag_Passed_FullPath_%s" % (sampleName),   "; Mean PNet score (j^{ldg btag}, j^{subldg btag}); #varepsilon_{L1+HLT}", len(bins_bDisc)-1,array.array("d", bins_bDisc))
     h_NBJets_Passed_FullPath     = ROOT.TH1F("h_NBJets_Passed_FullPath_%s" % (sampleName),     "; Medium b-jet multiplicity; #varepsilon_{L1+HLT}", 4, 1, 5)
-    
     h_PFHT_vs_MeanBTag = ROOT.TH2F("h_PFHT_vs_MeanBTag_%s" % (sampleName), "; Offline PF H_{T} [GeV]; Mean PNet score (j^{ldg btag}, j^{subldg btag}); #varepsilon_{L1+HLT}", len(bins2D_HT)-1, array.array("d", bins2D_HT), len(bins2D_bDisc)-1, array.array("d", bins2D_bDisc))
     h_PFHT_vs_MeanBTag_Passed_FullPath = ROOT.TH2F("h_PFHT_vs_MeanBTag_Passed_FullPath_%s" % (sampleName), "; Offline PF H_{T} [GeV]; Mean PNet score (j^{ldg btag}, j^{subldg btag}); #varepsilon_{L1+HLT}", len(bins2D_HT)-1, array.array("d", bins2D_HT), len(bins2D_bDisc)-1, array.array("d", bins2D_bDisc))
     
@@ -377,11 +410,60 @@ def GetPNetEfficiencies22(f, sampleName):
             h_NJets_Passed_FullPath.Fill(e.NSelectedJets)
             h_NBJets_Passed_FullPath.Fill(e.NMediumPNetJets)
             h_MeanBTag_Passed_FullPath.Fill(e.MeanPNetScore)
-            
+
+        
+        # Per-filter efficiencies:
         if (e.L1_L1sQuadJetOrHTTOrMuonHTT):
             h_PFHT_Passed_L1.Fill(e.PFHT)
             h_ForthJetPt_Passed_L1.Fill(e.ForthldgInPtJet_pt)
             
+            if (e.FourPixelOnlyPFCentralJetTightIDPt20 >= 4):
+                h_PFHT_Passed_FourPixelOnlyPFCentralJetTightIDPt20.Fill(e.PFHT)
+                h_ForthJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20.Fill(e.ForthldgInPtJet_pt)
+                h_ThirdJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20.Fill(e.ThirdldgInPtJet_pt)
+                
+                if (e.ThreePixelOnlyPFCentralJetTightIDPt30 >= 3):
+                    h_PFHT_Passed_ThreePixelOnlyPFCentralJetTightIDPt30.Fill(e.PFHT)
+                    h_ThirdJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30.Fill(e.ThirdldgInPtJet_pt)
+                    h_SecondJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30.Fill(e.SubldgInPtJet_pt)
+                    
+                    if (e.TwoPixelOnlyPFCentralJetTightIDPt40 >= 2):
+                        h_PFHT_Passed_TwoPixelOnlyPFCentralJetTightIDPt40.Fill(e.PFHT)
+                        h_SecondJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40.Fill(e.SubldgInPtJet_pt)
+                        h_FirstJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40.Fill(e.LdgInPtJet_pt)
+                        
+                        if (e.OnePixelOnlyPFCentralJetTightIDPt60 >= 1):
+                            h_PFHT_Passed_OnePixelOnlyPFCentralJetTightIDPt60.Fill(e.PFHT)
+                            h_FirstJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60.Fill(e.LdgInPtJet_pt)
+                            h_ForthJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60.Fill(e.ForthldgInPtJet_pt)
+                            
+                            if (e.FourPFCentralJetTightIDPt35 >= 4):
+                                h_PFHT_Passed_FourPFCentralJetTightIDPt35.Fill(e.PFHT)
+                                h_ForthJetPt_Passed_FourPFCentralJetTightIDPt35.Fill(e.ForthldgInPtJet_pt)
+                                h_ThirdJetPt_Passed_FourPFCentralJetTightIDPt35.Fill(e.ThirdldgInPtJet_pt)
+
+                                if (e.ThreePFCentralJetTightIDPt40 >= 3):
+                                    h_PFHT_Passed_ThreePFCentralJetTightIDPt40.Fill(e.PFHT)
+                                    h_ThirdJetPt_Passed_ThreePFCentralJetTightIDPt40.Fill(e.ThirdldgInPtJet_pt)
+                                    h_SecondJetPt_Passed_ThreePFCentralJetTightIDPt40.Fill(e.SubldgInPtJet_pt)
+                                    
+                                    if (e.TwoPFCentralJetTightIDPt50 >= 2):
+                                        h_PFHT_Passed_TwoPFCentralJetTightIDPt50.Fill(e.PFHT)
+                                        h_SecondJetPt_Passed_TwoPFCentralJetTightIDPt50.Fill(e.SubldgInPtJet_pt)
+                                        h_FirstJetPt_Passed_TwoPFCentralJetTightIDPt50.Fill(e.LdgInPtJet_pt)
+                                        if (e.OnePFCentralJetTightIDPt70 >= 1):
+                                            h_PFHT_Passed_OnePFCentralJetTightIDPt70.Fill(e.PFHT)
+                                            h_FirstJetPt_Passed_OnePFCentralJetTightIDPt70.Fill(e.LdgInPtJet_pt)
+            
+
+                                            h_MeanBTagSum_Passed_OnePFCentralJetTightIDPt70.Fill(e.MeanPNetScore)
+                                            if (e.BTagCentralJetPt35PFParticleNet2BTagSum0p65 >= 2):
+                                                h_MeanBTagSum_Passed_BTagCentralJetPt35PFParticleNet2BTagSum0p65.Fill(e.MeanPNetScore)
+
+
+
+
+
         if (e.NMediumPNetJets < 2): continue
         h_PFHT_vs_MeanBTag_2BTagM.Fill(e.PFHT, e.MeanPNetScore)
         h_PFHT_vs_ForthJetPt_2BTagM.Fill(e.PFHT, e.ForthldgInPtJet_pt)
@@ -459,6 +541,17 @@ def GetPNetEfficiencies22(f, sampleName):
                     h_MeanBTag_3BTagM_PFHT400_Passed_FullPath.Fill(e.MeanPNetScore)
                     h_NBJets_3BTagM_PFHT400_Passed_FullPath.Fill(e.NMediumPNetJets)
     
+
+
+
+
+
+
+
+
+
+
+
     hList = []
     hList.append(h_PFHT_vs_MeanBTag)
     hList.append(h_PFHT_vs_ForthJetPt)
@@ -474,8 +567,36 @@ def GetPNetEfficiencies22(f, sampleName):
     hList.append(h_NJets_Passed_FullPath)
     hList.append(h_NBJets_Passed_FullPath)
     hList.append(h_MeanBTag_Passed_FullPath)
+    # Per filter
     hList.append(h_PFHT_Passed_L1)
+    hList.append(h_PFHT_Passed_FourPixelOnlyPFCentralJetTightIDPt20)
+    hList.append(h_PFHT_Passed_ThreePixelOnlyPFCentralJetTightIDPt30)
+    hList.append(h_PFHT_Passed_TwoPixelOnlyPFCentralJetTightIDPt40)
+    hList.append(h_PFHT_Passed_OnePixelOnlyPFCentralJetTightIDPt60)
+    hList.append(h_PFHT_Passed_FourPFCentralJetTightIDPt35)
+    hList.append(h_PFHT_Passed_ThreePFCentralJetTightIDPt40)
+    hList.append(h_PFHT_Passed_TwoPFCentralJetTightIDPt50)
+    hList.append(h_PFHT_Passed_OnePFCentralJetTightIDPt70)
+    
     hList.append(h_ForthJetPt_Passed_L1)
+    hList.append(h_ForthJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20)
+    hList.append(h_ThirdJetPt_Passed_FourPixelOnlyPFCentralJetTightIDPt20)
+    hList.append(h_ThirdJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30)
+    hList.append(h_SecondJetPt_Passed_ThreePixelOnlyPFCentralJetTightIDPt30)
+    hList.append(h_SecondJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40)
+    hList.append(h_FirstJetPt_Passed_TwoPixelOnlyPFCentralJetTightIDPt40)
+    hList.append(h_FirstJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60)
+    hList.append(h_ForthJetPt_Passed_OnePixelOnlyPFCentralJetTightIDPt60)
+    hList.append(h_ForthJetPt_Passed_FourPFCentralJetTightIDPt35)
+    hList.append(h_ThirdJetPt_Passed_FourPFCentralJetTightIDPt35)
+    hList.append(h_ThirdJetPt_Passed_ThreePFCentralJetTightIDPt40)
+    hList.append(h_SecondJetPt_Passed_ThreePFCentralJetTightIDPt40)
+    hList.append(h_SecondJetPt_Passed_TwoPFCentralJetTightIDPt50)
+    hList.append(h_FirstJetPt_Passed_TwoPFCentralJetTightIDPt50)
+    hList.append(h_FirstJetPt_Passed_OnePFCentralJetTightIDPt70)
+    hList.append(h_MeanBTagSum_Passed_OnePFCentralJetTightIDPt70)
+    hList.append(h_MeanBTagSum_Passed_BTagCentralJetPt35PFParticleNet2BTagSum0p65)
+
     hList.append(h_PFHT_vs_MeanBTag_2BTagM)
     hList.append(h_PFHT_vs_ForthJetPt_2BTagM)
     hList.append(h_PFHT_2BTagM)
@@ -544,7 +665,8 @@ def main(args):
     hTTList   = []
     
     if args.year == "2022":
-        fData = ROOT.TFile.Open("Run3_MuonEG_2022_PromptNanoAOD_07June2023_v2/PrivateNano_MuonEG_Run2022_PromptReco_22May2023.root")
+        
+        fData = ROOT.TFile.Open("Run3_MuonEG_2022_PromptNanoAOD_07June2023_v2/PrivateNano_MuonEG_Run2022EFG_PromptReco_22May2023.root")
         hDataList = GetPNetEfficiencies22(fData, "MuonEG")
         
         fTT = ROOT.TFile.Open("Run3_TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8_08June2023/PrivateNano_TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8_08June2023/ntuple.root")
