@@ -871,17 +871,19 @@ int main(int argc, char** argv)
       for (unsigned int j=0; j<nonvetoed_jets.size(); j++)
 	{
 	  Jet jet = nonvetoed_jets.at(j);
-	  
+
 	  float pt = jet.P4().Pt();
 	  float eta= jet.P4().Eta();
-	  
+
 	  int jetid = get_property(jet, Jet_jetId);
           float btagPNetBvsAll = get_property(jet, Jet_btagPNetBvsAll);
-	  
-	  if (!checkBit(jetid, 1)) continue;
+
+	  // Jet ID flag: bit2 is tight, bit3 is tightLepVeto
+	  // https://cms-nanoaod-integration.web.cern.ch/autoDoc/NanoAODv11/2022postEE/doc_WZ_TuneCP5_13p6TeV_pythia8_Run3Summer22EENanoAODv11-126X_mcRun3_2022_realistic_postEE_v1-v1.html
+	  if (!checkBit(jetid, 2)) continue;
 	  if (pt < 30) continue;
 	  if (std::abs(eta) > 2.5) continue;
-	  	  
+
 	  double dR_ele = ROOT::Math::VectorUtil::DeltaR(jet.P4(), tagElectrons.at(0).P4());
 	  double dR_mu  = ROOT::Math::VectorUtil::DeltaR(jet.P4(), tagMuons.at(0).P4());
 	  
@@ -900,11 +902,11 @@ int main(int argc, char** argv)
       if (selected_jets.size()  < 4) continue;
       
       // Apply the trigger cuts
-      //if (selected_jets.at(0).P4().Pt() < 70.0) continue;
-      //if (selected_jets.at(1).P4().Pt() < 50.0) continue;
-      //if (selected_jets.at(2).P4().Pt() < 40.0) continue;
-      //if (selected_jets.at(3).P4().Pt() < 35.0) continue;
-      
+      if (selected_jets.at(0).P4().Pt() < 70.0) continue;
+      if (selected_jets.at(1).P4().Pt() < 50.0) continue;
+      if (selected_jets.at(2).P4().Pt() < 40.0) continue;
+      if (selected_jets.at(3).P4().Pt() < 35.0) continue;
+
       std::vector<Jet> selected_bjets;
       std::vector<Jet> LeadingFour_selected_bjets;
       

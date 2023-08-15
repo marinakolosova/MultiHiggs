@@ -50,7 +50,7 @@ def _getCrossSection(sampleName, energy):
 
 def _getLuminosity(year):
     if year =="2022":
-        return 29259 # pb 
+        return 26337 # pb (only post-EE) 
         
 def _normalizeHistogram(h, isData):
     
@@ -83,6 +83,7 @@ def _createRatioErrorPropagation(histo1, histo2):
     if isinstance(histo1, ROOT.TGraph) and isinstance(histo2, ROOT.TGraph):
         xvalues = []
         yvalues = []
+        xerrs = []
         yerrs = []
         
         for i in range(0, histo1.GetN()):
@@ -93,6 +94,8 @@ def _createRatioErrorPropagation(histo1, histo2):
             yvalue = histo1.GetY()[i] / yval
             yvalues.append(yvalue)
             
+            xerrs.append(histo1.GetErrorXlow(i)) # bin size
+            
             err1 = max(histo1.GetErrorYhigh(i), histo1.GetErrorYlow(i))
             err2 = max(histo2.GetErrorYhigh(i), histo2.GetErrorYlow(i))
             yerrs.append( yvalue * math.sqrt( _divideOrZero(err1, histo1.GetY()[i])**2 +
@@ -100,7 +103,8 @@ def _createRatioErrorPropagation(histo1, histo2):
             
         if len(xvalues) > 0:
             gr = ROOT.TGraphAsymmErrors(len(xvalues), array.array("d", xvalues), array.array("d", yvalues),
-                                        histo1.GetEXlow(), histo1.GetEXhigh(),
+                                        array.array("d", xerrs), array.array("d", xerrs),
+                                        #histo1.GetEXlow(), histo1.GetEXhigh(),
                                         array.array("d", yerrs), array.array("d", yerrs))
         else:
             gr = ROOT.TGraphAsymmErrors()
@@ -113,7 +117,6 @@ class ComparisonPlot_DataMC:
     Create Comparison plot with TGraphAsymmErrors for Data and MC
     '''
     def __init__(self, hData, hMC, **kwargs):
-        
         hData.SetMarkerColor(ROOT.kBlack)
         hData.SetLineColor(ROOT.kBlack)
         hData.SetMarkerStyle(20)
@@ -121,7 +124,6 @@ class ComparisonPlot_DataMC:
         hMC.SetMarkerColor(ROOT.kBlue)
         hMC.SetMarkerStyle(20)
         hMC.SetLineColor(ROOT.kBlue)
-        
         self._hData  = hData
         self._hMC    = hMC
         self._ratio  = _createRatioErrorPropagation(self._hData, self._hMC)
@@ -129,7 +131,6 @@ class ComparisonPlot_DataMC:
         return
         
     def _createFrame(self, framename, createRatio=False):
-        
         ratioType = "binomial"
         drawStyle = "EP"
         
@@ -251,11 +252,13 @@ class CanvasFrameTwo:
         self.canvas.cd(1)
         
         # Default position on canvas
-        leg = ROOT.TLegend(0.50, 0.20, 0.75, 0.40, "")
+        leg = ROOT.TLegend(0.44, 0.08, 0.90, 0.28, "")
         leg.SetFillColor(0)
         leg.SetFillStyle(0)
         leg.SetBorderSize(0)
         leg.SetTextColor(ROOT.kBlack)
+        leg.SetTextSize(0.03)
+        leg.SetHeader(kwargs.get("hlt_filter"))
         
         histos1[0].SetMarkerColor(ROOT.kBlack)
         histos1[0].SetMarkerStyle(20)
@@ -282,27 +285,30 @@ class CanvasFrameTwo:
         
         header = ROOT.TLatex()
         header.SetTextSize(0.04)
-        header.DrawLatexNDC(0.62, 0.91, "29.26 fb^{-1} (2022, 13.6 TeV)")
+        header.DrawLatexNDC(0.62, 0.91, "26.3 fb^{-1} (2022, 13.6 TeV)")
         
-        line = ROOT.TLine(opts1["xmin"], 1.0, opts1["xmax"], 1.0)
-        line.SetLineStyle(ROOT.kDashDotted)
-        line.SetLineColor(13)
-        line.DrawClone("same")
+        line_eff = ROOT.TLine(opts1["xmin"], 1.0, opts1["xmax"], 1.0)
+        line_eff.SetLineStyle(ROOT.kDashDotted)
+        line_eff.SetLineColor(13)
+        line_eff.DrawClone("same")
         
+        self.canvas.Modified()
+        self.canvas.Update()
         
-        self.canvas.cd(2)        
+        self.canvas.cd(2)
         ratio.SetMarkerStyle(20)
         ratio.Draw("same PE")
         
-        line = ROOT.TLine(opts1["xmin"], 1.0, opts1["xmax"], 1.0)
-        line.SetLineStyle(ROOT.kDashDotted)
-        line.SetLineColor(13)
-        line.DrawClone("same")
+        line_ratio = ROOT.TLine(opts1["xmin"], 1.0, opts1["xmax"], 1.0)
+        line_ratio.SetLineStyle(ROOT.kDashed)
+        line_ratio.SetLineColor(13)
+        line_ratio.DrawClone("same")
         
-
-
         self.canvas.cd(1)
         leg.DrawClone("same")
+        
+        self.canvas.Modified()
+        self.canvas.Update()
         
         self.frame = FrameWrapper(self.pad1, self.frame1, self.pad2, self.frame2)
         self.frame2.GetYaxis().SetNdivisions(505)
@@ -579,7 +585,7 @@ def doFit(tGraph, fit_function, initialParameters, **kwargs):
     aliasDict["error"] = "0.5*(1 + TMath::Erf( (x[0]-[0])/[1]) ) * ([3]-[2]) + [2]"
     aliasDict["crystalball_cdf"] = "ROOT::Math::crystalball_cdf(x, [5], [4], [1], [0])*([3]-[2]) + [2]"
     aliasDict["crystalball_error"] = "ROOT::Math::crystalball_cdf(x, [5], [4], [1], [0]) * (0.5*(1 + TMath::Erf( (x-[0])/[6]) ) ) *([3]-[2]) + [2]"
-    
+
     if fit_function == "crystalball_error":
         # First - define the error function
         errorFunction = ROOT.TF1("erf", aliasDict["error"], kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
@@ -603,6 +609,7 @@ def doFit(tGraph, fit_function, initialParameters, **kwargs):
         Function.SetParLimits(4, 1.001, 10)
         Function.SetParLimits(5, 0.001, 10)
         tGraph.Fit(Function, "Q0RE")
+
     elif fit_function == "crystalball_cdf":
         Function = ROOT.TF1("crystal_ball", aliasDict["crystalball_cdf"], kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
         Function.SetParameter(0, initialParameters["p0"])
@@ -630,38 +637,19 @@ def doFit(tGraph, fit_function, initialParameters, **kwargs):
     # Create a TGraphErrors to hold the confidence intervals
     values = fitResult.GetConfidenceIntervals(0.68, True)
     interval = ROOT.TGraphErrors(tGraph.GetN())
-    
+
     #xMin = tGraph.GetX()[0]-tGraph.GetErrorXlow(0)
     #xMax = tGraph.GetX()[tGraph.GetN()-1] + tGraph.GetErrorXlow(tGraph.GetN()-1)
-        
+
     for i in range(tGraph.GetN()):
         interval.SetPoint(i, tGraph.GetX()[i], Function.Eval(tGraph.GetX()[i]))
         interval.SetPointError(i, tGraph.GetX()[i], values[i])
-        print("bin ", i, "  x=", tGraph.GetX()[i], "   fit value=", Function.Eval(tGraph.GetX()[i]), "   Confidence interval=", values[i])
-
+        #print("bin ", i, "  x=", tGraph.GetX()[i], "   fit value=", Function.Eval(tGraph.GetX()[i]), "   Confidence interval=", values[i])
+        
     interval.SetFillColor(ROOT.kRed)
     interval.SetFillStyle(3001)
     return Function, interval
 
-def GetFitFunctionFromAlias(fitFormula):
-    aliasDict = {}
-    aliasDict["pol1"]         = "[0] + [1]*x"
-    aliasDict["pol2"]         = "[0] + [1]*x + [2]*x*x"
-    aliasDict["pol3"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x"
-    aliasDict["pol4"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x"
-    aliasDict["pol5"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x"
-    aliasDict["pol6"]         = "[0]+[1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x + [6]*x*x*x*x*x*x"
-    aliasDict["sigmoid"]      = "[0]/( 1+exp(-[1]*(x-[2]) ))"
-    aliasDict["error"]        = "0.5*[0]*(1+TMath::Erf( (sqrt(x)-sqrt([1]))/([2]) ))"
-    aliasDict["gomprentz"]    = "[2]*(0.5)**(exp(-[0]*(x-[1])))"
-    aliasDict["richards"]     = "[2]/( (1 + (2**[3] - 1)*exp(-[0]*(x-[1])))**(1/[3])  )"
-    aliasDict["crystalball"]  = "ROOT::Math::crystalball_cdf(x, [0], [1], [2], [3])"
-    
-    if fitFormula not in aliasDict.keys():
-        print("Requested fit formula (%s) not present. Please add it." % (fitFormula))
-        return fitFormula
-    else:
-        return aliasDict[fitFormula]
 
 def SetEfficiencyStyle(h, isData):
     
@@ -734,33 +722,53 @@ def main(args):
     ROOT.gStyle.SetOptFit(1011)
     # Create comparison plots (Data/MC) for each filter
     for (hName, num, den) in zip(hNames, Nums, Dens):
+
+        hlt_filter = hName.split("_")[1]
+
+        #if not(hlt_filter == "TwoPixelOnlyPFCentralJetTightIDPt40"):
+        #    continue
+
         hNum = f.Get("%s_MuonEG" % (num))
         hDen = f.Get("%s_MuonEG" % (den))
 
+        kwargs = {}
+        kwargs["hlt_filter"] = hlt_filter
+        if "MeanBTag" in hName:
+            kwargs["opts"]={"xmin": 0.60, "xmax": 1.02, "xlabel": "Mean b-tag score", "ylabel": "#varepsilon_{filter}", "ymin":0.2, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": True, "dx": -0.35, "dy": +0.3, "size":0.03, "header": None} }
+        else:
+            kwargs["opts"]={"xmin": 35, "xmax": 200, "xlabel": "Offline jet p_{T} [GeV]", "ylabel": "#varepsilon_{filter}", "ymin":0.2, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": True, "dx": -0.25, "dy": +0.3, "size":0.03, "header": None} }
+        kwargs["opts2"]={"ylabel": "Data / MC", "ymin": 0.7, "ymax": 1.3}
+
+        if "OnePFCentralJetTightIDPt70" in kwargs["hlt_filter"]:
+            kwargs["opts"]["xmin"] = 60
+        #elif "OnePixelOnlyPFCentralJetTightIDPt60" in kwargs["hlt_filter"]:
+        #    kwargs["opts"]["xmin"] = 60
+        
+        hNum.GetXaxis().SetRangeUser(kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        hDen.GetXaxis().SetRangeUser(kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
+        
         hEff  = ROOT.TEfficiency(hNum, hDen)
         hEff.SetStatisticOption(statOption)
-                
+
         # MC distributions -> Need to normalize them to reflect the integrated luminosity
         hNumMC = f.Get("%s_TT" % (num))
         hDenMC = f.Get("%s_TT" % (den))
-        
+
         hEffMC = ROOT.TEfficiency(hNumMC, hDenMC)
         hEffMC.SetStatisticOption(statOption)
         
         tGraph_Eff_Data = convert2TGraph(hEff)
         tGraph_Eff_MC   = convert2TGraph(hEffMC)
-        
-        kwargs = {}
-        if "MeanBTag" in hName:
-            kwargs["opts"]={"xmin": 0.60, "xmax": 1.02, "xlabel": "Mean b-tag score", "ylabel": "#varepsilon_{filter}", "ymin":0.2, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": True, "dx": -0.35, "dy": +0.3, "size":0.03, "header": None} }
-        else:
-            kwargs["opts"]={"xmin": 30, "xmax": 200, "xlabel": "Offline jet p_{T} [GeV]", "ylabel": "#varepsilon_{filter}", "ymin":0.5, "ymax": 1.1, "ymaxfactor":1.1, "legend": {"move": True, "dx": -0.25, "dy": +0.3, "size":0.03, "header": None} }
-        kwargs["opts2"]={"ylabel": "Data / MC", "ymin": 0.7, "ymax": 1.3}
+
         p = ComparisonPlot_DataMC(tGraph_Eff_Data, tGraph_Eff_MC, **kwargs)
         frame = p._createFrame("frame_"+hName, createRatio=True)
+        frame.canvas.Update()
+        frame.canvas.Modified()
         frame.canvas.SaveAs(hName+".pdf")
-        
+
+        #==================================================
         # Fit each curve separately, Data and MC
+        #==================================================
         canvas_data = getCanvas()
         opts = GetOpts(hName)
         opts["legend"]["header"] = hName.split("_")[-1]
@@ -778,8 +786,7 @@ def main(args):
         # Skip first plot until I fix the issue
         if "L1" in hName:
             continue
-        
-        hlt_filter = hName.split("_")[1]
+
         legend.SetHeader(hlt_filter)
 
         hEff.GetPaintedGraph().GetYaxis().SetTitle("#varepsilon_{filter}")
@@ -792,18 +799,24 @@ def main(args):
             online_cut = 20
         elif "ThreePixelOnlyPFCentralJetTightIDPt30" in hName:
             online_cut = 30
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "TwoPixelOnlyPFCentralJetTightIDPt40" in hName:
             online_cut = 40
+            initialParameters = {"p0" : 55.1344, "p1": 10.536, "p2": 0.177, "p3": 0.99703, "p4": 1.01, "p5": 3.02}
         elif "OnePixelOnlyPFCentralJetTightIDPt60" in hName:
             online_cut = 60
+            initialParameters = {"p0" : 60, "p1": 50.8, "p2": 0.26, "p3": 1.0, "p4": 1.01, "p5": 3.02}
         elif "FourPFCentralJetTightIDPt35" in hName:
             online_cut = 35
         elif "ThreePFCentralJetTightIDPt40" in hName:
             online_cut = 40
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "TwoPFCentralJetTightIDPt50" in hName:
             online_cut = 50
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "OnePFCentralJetTightIDPt70" in hName:
             online_cut = 70
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
             online_cut = 0.65
             initialParameters = {"p0" : 1.375, "p1": 0.342, "p2": 0.372, "p3": 4.51, "p4": 1.01, "p5": 3.02}
@@ -825,13 +838,13 @@ def main(args):
         print("p2=", initialParameters["p2"])
         print("p3=", initialParameters["p3"])
         
-        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName or "OnePixel" in hName or "OnePF" in hName or "TwoPF" in hName:
             print("p4=", initialParameters["p4"])
             print("p4=", initialParameters["p5"])
             fit, interval = doFit(tGraph_Eff_Data, "crystalball_cdf", initialParameters, **kwargs)
-            fit, interval = doFit(tGraph_Eff_Data, "pol5", initialParameters, **kwargs)
         else:
             fit, interval = doFit(tGraph_Eff_Data, "crystalball_error", initialParameters, **kwargs)
+
         fit.Draw("same")
         interval.Draw("E3 same")
         
@@ -886,9 +899,7 @@ def main(args):
         hEffMC.GetPaintedGraph().GetYaxis().SetTitle("#varepsilon_{filter}")
         hEffMC.GetPaintedGraph().GetXaxis().SetRangeUser(kwargs["opts"]["xmin"], kwargs["opts"]["xmax"])
         hEffMC.GetPaintedGraph().GetYaxis().SetRangeUser(0.0, 1.1)
-        
-
-        
+                
         # Skip first plot until I fix the issue
         if "L1" in hName:
             continue
@@ -906,16 +917,21 @@ def main(args):
             online_cut = 30
         elif "TwoPixelOnlyPFCentralJetTightIDPt40" in hName:
             online_cut = 40
+            initialParameters = {"p0" : 30.42099, "p1": 9.8603, "p2": 1.688, "p3": 0.9981, "p4": 1.01, "p5": 3.02}
         elif "OnePixelOnlyPFCentralJetTightIDPt60" in hName:
             online_cut = 60
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "FourPFCentralJetTightIDPt35" in hName:
             online_cut = 35
         elif "ThreePFCentralJetTightIDPt40" in hName:
             online_cut = 40
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "TwoPFCentralJetTightIDPt50" in hName:
             online_cut = 50
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "OnePFCentralJetTightIDPt70" in hName:
             online_cut = 70
+            initialParameters = {"p0" : 58.4, "p1": 50.8, "p2": 0.26, "p3": 0.99, "p4": 1.01, "p5": 3.02}
         elif "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
             online_cut = 0.65
             initialParameters = {"p0" : 1.375, "p1": 0.342, "p2": 0.372, "p3": 4.51, "p4": 1.01, "p5": 3.02}
@@ -937,7 +953,9 @@ def main(args):
         print("p2=", initialParameters["p2"])
         print("p3=", initialParameters["p3"])
         
-        if "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
+        if "OnePF" in hName or "ThreePF" in hName or "TwoPF" in hName or "OnePixel" in hName:
+            fit, interval = doFit(tGraph_Eff_MC, "crystalball_cdf", initialParameters, **kwargs)
+        elif "BTagCentralJetPt35PFParticleNet2BTagSum0p65" in hName:
             print("p4=", initialParameters["p4"])
             print("p4=", initialParameters["p5"])
             fit, interval = doFit(tGraph_Eff_MC, "pol5", initialParameters, **kwargs)
@@ -979,14 +997,6 @@ def main(args):
         canvas_mc.Modified()
         canvas_mc.Update()
         canvas_mc.SaveAs("Fit_MC_%s.pdf" % (hName))
-
-
-
-
-
-
-
-
 
 
 

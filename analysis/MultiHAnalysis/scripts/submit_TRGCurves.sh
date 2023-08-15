@@ -5,8 +5,8 @@
 # 2022 Samples for trigger studies
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #DATA_files=$(ls input/Run3/2022/PrivateNano_MuonEG_Run2*)
-#ODIR="/store/user/mkolosov/MultiHiggs/DiHiggs/2022/TriggerEfficiency/"
-#TAG="Run3_MuonEG_2022_PromptNanoAOD_07June2023_v2"
+#ODIR="/store/user/mkolosov/MultiHiggs/DiHiggs/2022/FinalTrgEff_PromptData_14Aug2023_ApplyOnlineCuts/"
+#TAG="Run3_MuonEG_2022_PromptNanoAOD_14Aug2023"
 #CFG="config/skim_PNetHLT_2022_PromptNanoAODv11.cfg"
 
 #make exe -j || exit -1
@@ -18,8 +18,8 @@
 #done
 
 TT_files=$(ls input/Run3/2022/postEE/PrivateNano_TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8_08June2023*)
-ODIR="/store/user/mkolosov/MultiHiggs/DiHiggs/2022/TriggerEfficiency/"
-TAG="Run3_TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8_08June2023"
+ODIR="/store/user/mkolosov/MultiHiggs/DiHiggs/2022/FinalTrgEff_PromptData_14Aug2023_ApplyOnlineCuts/"
+TAG="Run3_TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8_14Aug2023"
 CFG="config/skim_PNetHLT_2022_PromptNanoAODv11.cfg"
 
 make exe -j || exit -1
