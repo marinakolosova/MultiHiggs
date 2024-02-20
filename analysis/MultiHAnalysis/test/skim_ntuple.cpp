@@ -595,7 +595,7 @@ int main(int argc, char** argv) {
   if (year == "2018") {
     trgEfficiencyCalculator_ = new TriggerEfficiencyCalculator_2018(trgEffFileName, nat);
   } else if (year == "2017") {
-    // trgEfficiencyCalculator_ = new TriggerEfficiencyCalculator_2017(trgEffFileName, nat);
+    trgEfficiencyCalculator_ = new TriggerEfficiencyCalculator_2017(trgEffFileName, nat);
   } else {
     // throw std::invalid_argument("No trigger efficiency file exists for the year requested");
   }
@@ -1104,7 +1104,7 @@ int main(int argc, char** argv) {
       if (selected_jets.size() < 6)
         continue;
 
-      if (!is_data && saveTrgSF) {skf->get_puid_sf(ei, all_jets, puid_sf_file, year);}
+      //if (!is_data && saveTrgSF) {skf->get_puid_sf(ei, all_jets, puid_sf_file, year);}
 
       if (btsf.reshaping_found) {
         btsf.compute_reshaping_sf(presel_jets, nat, ot);
