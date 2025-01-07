@@ -161,7 +161,7 @@ bool performTriggerMatching(
     std::map<std::string, std::map<std::pair<int, int>, int>>& triggerObjectAndMinNumberMap,
     std::map<std::string, std::vector<std::map<std::pair<int, int>, bool>>>& triggerObjectPerJetCount_,
     std::map<std::string, std::map<std::pair<int, int>, int>>& triggerObjectTotalCount_,
-    std::vector<Jet> selected_jets) {
+    std::vector<Jet> selected_jets, std::string year) {
   bool triggerMatched = false;
   //std::vector<int> matched_jets;
   const float trgMatchingDeltaR = config.readFloatOpt("triggers::MaxDeltaR");
@@ -199,43 +199,70 @@ bool performTriggerMatching(
           if (0) {
             std::cout << "Trigger obj. index = " << trigObjIt << "  trigger bit = " << triggerFilter.first.second
                       << "  matched with jet =" << jetIdAndMinDeltaRandPt;
-            if (triggerFilter.first.second == 1)
-              std::cout << "  Filter = hltBTagCaloCSVp087Triple   ";
-            else if (triggerFilter.first.second == 2)
-              std::cout << "  Filter = hltDoubleCentralJet90      ";
-            else if (triggerFilter.first.second == 3)
-              std::cout << "  Filter = hltDoublePFCentralJetLooseID90     ";
-            else if (triggerFilter.first.second == 4)
-              std::cout << "  Filter = hltL1sTripleJetVBFIorHTTIorDoubleJetCIorSingleJet    ";
-            else if (triggerFilter.first.second == 5)
-              std::cout << "  Filter = hltQuadCentralJet30    ";
-            else if (triggerFilter.first.second == 6)
-              std::cout << "  Filter = hltQuadPFCentralJetLooseID30    ";
-            else if (triggerFilter.first.second == 10)
-              std::cout << "  Filter = hltL1sQuadJetC60IorHTT380IorHTT280QuadJetIorHTT300QuadJet    ";
-            else if (triggerFilter.first.second == 11)
-              std::cout << "  Filter = hltBTagCaloDeepCSVp17Double     ";
-            else if (triggerFilter.first.second == 12)
-              std::cout << "  Filter = hltPFCentralJetLooseIDQuad30    ";
-            else if (triggerFilter.first.second == 13)
-              std::cout << "  Filter = hlt1PFCentralJetLooseID75     ";
-            else if (triggerFilter.first.second == 14)
-              std::cout << "  Filter = hlt2PFCentralJetLooseID60     ";
-            else if (triggerFilter.first.second == 15)
-              std::cout << "  Filter = hlt3PFCentralJetLooseID45     ";
-            else if (triggerFilter.first.second == 16)
-              std::cout << "  Filter = hlt4PFCentralJetLooseID40     ";
-            else if (triggerFilter.first.second == 17)
-              std::cout << "  Filter = hltBTagPFDeepCSV4p5Triple     ";
-            else
-              std::cout << " Other filter (HT?)" << std::endl;
-            if (triggerObjectId == 1)
-              std::cout << "   (Jet)" << std::endl;
-            else if (triggerObjectId == 3)
-              std::cout << "    (HT)" << std::endl;
-            else
-              std::cout << " " << std::endl;
+
+	    if (year == "2016")
+	      {
+		if (triggerFilter.first.second == 4)
+		  std::cout << " coming from filter : hltL1sTripleJetVBFIorHTTIorDoubleJetCIorSingleJet";
+		if (triggerFilter.first.second == 5)
+		  std::cout << " coming from filter : hltQuadCentralJet30";
+		if (triggerFilter.first.second == 2)
+		  std::cout << " coming from filter : hltDoubleCentralJet90";
+		if (triggerFilter.first.second == 6)
+		  std::cout << " coming from filter : hltQuadPFCentralJetLooseID30";
+		if (triggerFilter.first.second == 3)
+		  std::cout << " coming from filter : hltDoublePFCentralJetLooseID90";
+		if (triggerFilter.first.second == 7)
+		  std::cout << " coming from filter : hltL1sQuadJetC50IorQuadJetC60IorHTT280IorHTT300IorHTT320IorTripleJet846848VBFIorTripleJet887256VBFIorTripleJet927664VBF";
+		if (triggerFilter.first.second == 8)
+		  std::cout << " coming from filter : hltQuadCentralJet45";
+		if (triggerFilter.first.second == 1)
+		  std::cout << " coming from filter : hltBTagCaloCSVp087Triple";
+		if (triggerFilter.first.second == 9)
+		  std::cout << " coming from filter : hltQuadPFCentralJetLooseID45";
+	      }
+	    else
+	      {
+		if (triggerFilter.first.second == 1)
+		  std::cout << "  Filter = hltBTagCaloCSVp087Triple   ";
+		else if (triggerFilter.first.second == 2)
+		  std::cout << "  Filter = hltDoubleCentralJet90      ";
+		else if (triggerFilter.first.second == 3)
+		  std::cout << "  Filter = hltDoublePFCentralJetLooseID90     ";
+		else if (triggerFilter.first.second == 4)
+		  std::cout << "  Filter = hltL1sTripleJetVBFIorHTTIorDoubleJetCIorSingleJet    ";
+		else if (triggerFilter.first.second == 5)
+		  std::cout << "  Filter = hltQuadCentralJet30    ";
+		else if (triggerFilter.first.second == 6)
+		  std::cout << "  Filter = hltQuadPFCentralJetLooseID30    ";
+		else if (triggerFilter.first.second == 10)
+		  std::cout << "  Filter = hltL1sQuadJetC60IorHTT380IorHTT280QuadJetIorHTT300QuadJet    ";
+		else if (triggerFilter.first.second == 11)
+		  std::cout << "  Filter = hltBTagCaloDeepCSVp17Double     ";
+		else if (triggerFilter.first.second == 12)
+		  std::cout << "  Filter = hltPFCentralJetLooseIDQuad30    ";
+		else if (triggerFilter.first.second == 13)
+		  std::cout << "  Filter = hlt1PFCentralJetLooseID75     ";
+		else if (triggerFilter.first.second == 14)
+		  std::cout << "  Filter = hlt2PFCentralJetLooseID60     ";
+		else if (triggerFilter.first.second == 15)
+		  std::cout << "  Filter = hlt3PFCentralJetLooseID45     ";
+		else if (triggerFilter.first.second == 16)
+		  std::cout << "  Filter = hlt4PFCentralJetLooseID40     ";
+		else if (triggerFilter.first.second == 17)
+		  std::cout << "  Filter = hltBTagPFDeepCSV4p5Triple     ";
+		else
+		  std::cout << " Other filter (HT?)" << std::endl;
+	      }
+
+	    if (triggerObjectId == 1)
+	      std::cout << "   (Jet)" << std::endl;
+	    else if (triggerObjectId == 3)
+	      std::cout << "    (HT)" << std::endl;
+	    else
+	      std::cout << " " << std::endl;
           }
+	  
           int bestMatchingIndex = std::get<0>(jetIdAndMinDeltaRandPt);
           if (bestMatchingIndex >= 0) {
             triggerAndJetsFilterMap.second.at(bestMatchingIndex).at(triggerFilter.first) = true;
@@ -247,60 +274,65 @@ bool performTriggerMatching(
   }  // Closes loop over trigger objects
 
   // Count all filters passed
-  for (auto& triggerAndJetVector : triggerObjectPerJetCount_) {
-    if (0)
-      std::cout << "Trigger path = " << triggerAndJetVector.first << std::endl;
-    for (auto& jetMap : triggerAndJetVector.second) {
-      for (auto& filterAndFlag : jetMap) {
-        if (0)
-          std::cout << " Trigger Object ID " << filterAndFlag.first.first << " -  Filter " << filterAndFlag.first.second
-                    << " -> ";
-        if (filterAndFlag.second) {
-          if (0)
-            std::cout << "true" << std::endl;
-          ++triggerObjectTotalCount_.at(triggerAndJetVector.first).at(filterAndFlag.first);
-        }
-        //else std::cout<< "false" << std::endl;
-      }
+  for (auto& triggerAndJetVector : triggerObjectPerJetCount_)
+    {
+      //std::cout << "Trigger path = " << triggerAndJetVector.first << std::endl;
+      for (auto& jetMap : triggerAndJetVector.second)
+	{
+	  for (auto& filterAndFlag : jetMap)
+	    {
+	      if (0)
+		std::cout << " Trigger Object ID " << filterAndFlag.first.first << " -  Filter " << filterAndFlag.first.second
+			  << " -> ";
+	      if (filterAndFlag.second)
+		{
+		  if (0)
+		    std::cout << "true" << std::endl;
+		  ++triggerObjectTotalCount_.at(triggerAndJetVector.first).at(filterAndFlag.first);
+		}
+	      //else std::cout<< "false" << std::endl;
+	    }
+	}
     }
-  }
-
+  
   // Check if trigger matching is satisfied
   std::map<std::string, bool> triggerResult;
-  for (const auto& triggerRequirements :
-       any_cast<std::map<std::string, std::map<std::pair<int, int>, int>>>(triggerObjectAndMinNumberMap)) {
-    triggerResult[triggerRequirements.first] = true;
-    if (nat.getTrgResult(triggerRequirements.first) == false)
+  for (const auto& triggerRequirements : any_cast<std::map<std::string, std::map<std::pair<int, int>, int>>>(triggerObjectAndMinNumberMap))
     {
-    //std::cout << "trigger  "<<triggerRequirements.first<<"  is not satisfied. Skip checking trigger object matching."<< std::endl;
-    triggerResult[triggerRequirements.first] = false;
-    continue;
-    }
+      triggerResult[triggerRequirements.first] = true;
 
+      if (nat.getTrgResult(triggerRequirements.first) == false)
+	{
+	  //std::cout << "trigger  "<<triggerRequirements.first<<"  is not satisfied. Skip checking trigger object matching."<< std::endl;
+	  triggerResult[triggerRequirements.first] = false;
+	  continue;
+	}
 
-    for (const auto& requiredNumberOfObjects : triggerRequirements.second)  // triggers fired
-    {
-      if (0) {
-        std::cout << "Id = " << requiredNumberOfObjects.first.first
-                  << " - Filter = " << requiredNumberOfObjects.first.second;
-        std::cout << "  -> Required = " << requiredNumberOfObjects.second;
-        std::cout << "  -> Passed = "
-                  << triggerObjectTotalCount_[triggerRequirements.first][requiredNumberOfObjects.first];
-      }
-      if (triggerObjectTotalCount_[triggerRequirements.first][requiredNumberOfObjects.first] <
-          requiredNumberOfObjects.second) {
-        triggerResult[triggerRequirements.first] = false;  // Number of object not enough
-        //std::cout << " false"<<std::endl;
-      }
-      //else
-      //  {
-      //std::cout << " true"<<std::endl;
-      // }
+      for (const auto& requiredNumberOfObjects : triggerRequirements.second)  // triggers fired
+	{
+	  if (0) {
+	    std::cout << "====trigger fired : "<< triggerRequirements.first<<std::endl;
+	    std::cout << "Id = " << requiredNumberOfObjects.first.first
+		      << " - Filter = " << requiredNumberOfObjects.first.second;
+	    std::cout << "  -> Required = " << requiredNumberOfObjects.second;
+	    std::cout << "  -> Passed = "
+		      << triggerObjectTotalCount_[triggerRequirements.first][requiredNumberOfObjects.first];
+	  }
+	  if (triggerObjectTotalCount_[triggerRequirements.first][requiredNumberOfObjects.first] < requiredNumberOfObjects.second)
+	    {
+	      triggerResult[triggerRequirements.first] = false;  // Number of object not enough
+	      //std::cout << " false"<<std::endl;
+	    }
+	  //else
+	  // {
+	  //   std::cout << " true"<<std::endl;
+	  // }
+	}
     }
-  }
 
   for (const auto& triggerChecked : triggerResult) {
     if (triggerChecked.second) {
+      //std::cout << "trigger : "<<triggerChecked.first<<"  passed matching"<<std::endl;
       ot.userInt(triggerChecked.first + "_ObjectMatched") = 1;
       triggerMatched = true;
     }
@@ -1099,7 +1131,8 @@ int main(int argc, char** argv) {
                                                      triggerObjectAndMinNumberMap,
                                                      triggerObjectPerJetCount_,
                                                      triggerObjectTotalCount_,
-                                                     selected_jets);
+                                                     selected_jets,
+						     year);
         if (!triggerMatched)
           continue;
         cutflow.add("Trigger matching", nwt);
@@ -1194,25 +1227,20 @@ int main(int argc, char** argv) {
       //========================================
       // Apply trigger matching
       //========================================
-      try{
-        if (applyTrgMatching) {
-          bool triggerMatched = performTriggerMatching(nat,
-                                                      ot,
-                                                      config,
-                                                      triggerObjectAndMinNumberMap,
-                                                      triggerObjectPerJetCount_,
-                                                      triggerObjectTotalCount_,
-                                                      selected_jets);
-          if (!triggerMatched)
-            continue;
-          cutflow.add("Trigger matching", nwt);
-          cutflow_Unweighted.add("Trigger matching");
-          loop_timer.click("Trigger object - offline object matching");
-        }
-        throw (iEv);
-      }
-      catch (int iEv) {
-        std::cout << "Trigger matching failed on event " << iEv << std::endl;
+      if (applyTrgMatching) {
+	bool triggerMatched = performTriggerMatching(nat,
+						     ot,
+						     config,
+						     triggerObjectAndMinNumberMap,
+						     triggerObjectPerJetCount_,
+						     triggerObjectTotalCount_,
+						     selected_jets,
+						     year);
+	if (!triggerMatched)
+	  continue;
+	cutflow.add("Trigger matching", nwt);
+	cutflow_Unweighted.add("Trigger matching");
+	loop_timer.click("Trigger object - offline object matching");
       }
 
       //=======================================
